@@ -1,0 +1,40 @@
+Host control
+  HostName 172.17.0.6
+  Port 22
+#  Port 3200
+  User ansible
+  IdentityFile ./env/ansible
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+
+Host lb01
+  HostName 172.17.0.5
+  Port 3201
+  User ansible
+  IdentityFile ./env/ansible
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+
+Host app01
+  HostName 172.17.0.3
+  Port 3211
+  User ansible
+  IdentityFile ./env/ansible
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+
+Host app02
+  HostName 172.17.0.4
+  Port 3212
+  User ansible
+  IdentityFile ./env/ansible
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+
+Host db01
+  HostName 172.17.0.2
+  Port 3222
+  User ansible
+  IdentityFile ./env/ansible
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null

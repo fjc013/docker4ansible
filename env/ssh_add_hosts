@@ -1,0 +1,15 @@
+Host ubu01
+  HostName 172.17.08.
+  Port 22
+  User ansible
+  IdentityFile ./env/ansible
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+
+Host cent01
+  HostName 172.17.0.7
+  Port 3201
+  User ansible
+  IdentityFile ./env/ansible
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null

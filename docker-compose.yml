@@ -1,0 +1,20 @@
+ub01:
+  build: ./env/ubuntu
+  hostname: ubu01
+  links:
+    - cent01
+  ports:
+    - "2200:22"
+  volumes:
+    - ./:/work
+cent01:
+  container_name: cent7-priv
+  privileged: true
+  cap_add: 
+    - SYS_ADMIN
+  build: ./env/centos
+  hostname: cent01
+  ports:
+    - "2201:22"
+  volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
