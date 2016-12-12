@@ -2,19 +2,55 @@ ub01:
   build: ./env/ubuntu
   hostname: ubu01
   links:
-    - cent01
+    - centlb01
+    - centapp01
+    - centapp02
+    - centdb01
   ports:
     - "2200:22"
   volumes:
     - ./:/work
-cent01:
-  container_name: cent7-priv
+centlb01:
+  container_name: cent7-lb01
   privileged: true
   cap_add: 
     - SYS_ADMIN
   build: ./env/centos
-  hostname: cent01
+  hostname: centlb01
   ports:
     - "2201:22"
+  volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+centapp01:
+  container_name: cent7-app01
+  privileged: true
+  cap_add: 
+    - SYS_ADMIN
+  build: ./env/centos
+  hostname: centapp01
+  ports:
+    - "2202:22"
+  volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+centapp02:
+  container_name: cent7-app02
+  privileged: true
+  cap_add: 
+    - SYS_ADMIN
+  build: ./env/centos
+  hostname: centapp02
+  ports:
+    - "2203:22"
+  volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+centdb01:
+  container_name: cent7-db01
+  privileged: true
+  cap_add: 
+    - SYS_ADMIN
+  build: ./env/centos
+  hostname: centdb01
+  ports:
+    - "2204:22"
   volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup:ro

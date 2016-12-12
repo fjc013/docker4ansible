@@ -1,0 +1,19 @@
+[control]
+ubu01 ansible_connection=local
+
+[loadbalancer]
+centlb01
+
+[webserver]
+centapp01
+centapp02
+
+[database]
+centdb01
+
+[magent:children]
+loadbalancer
+webserver
+database
+
+
