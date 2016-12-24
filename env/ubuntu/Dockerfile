@@ -44,7 +44,7 @@ RUN echo "ansible ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-COPY init-fake.conf /etc/init/fake-container-events.conf
+ADD init-fake.conf /etc/init/fake-container-events.conf
 RUN rm /usr/sbin/policy-rc.d; rm /sbin/initctl; dpkg-divert --rename --remove /sbin/initctl
 
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
@@ -68,6 +68,12 @@ RUN /usr/sbin/update-rc.d -f ondemand remove; \
     dpkg-divert --local --rename --add "$f"; \
   done; \
   echo '# /lib/init/fstab: cleared out for bare-bones Docker' > /lib/init/fstab
+
+#
+# Provision ansible in this container
+COPY provisioning.sh /home/ansible/provisioning.sh
+RUN chmod +x /home/ansible/provisioning.sh
+RUN /home/ansible/provisioning.sh
 
 ENV container docker
 

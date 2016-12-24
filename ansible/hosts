@@ -1,19 +1,17 @@
-[control]
+[np_control]
 ubu01 ansible_connection=local
 
-[loadbalancer]
+[np_loadbalancer]
 centlb01
 
-[webserver]
+[np_webserver]
 centapp01
 centapp02
 
-[database]
+[np_database]
 centdb01
 
-[magent:children]
-loadbalancer
-webserver
-database
-
-
+[np_magent:children]
+np_loadbalancer
+np_webserver
+np_database

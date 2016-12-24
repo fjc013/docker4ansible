@@ -1,5 +1,6 @@
-ub01:
+ubu01:
   build: ./env/ubuntu
+  container_name: d4a-control
   hostname: ubu01
   links:
     - centlb01
@@ -7,50 +8,61 @@ ub01:
     - centapp02
     - centdb01
   ports:
-    - "2200:22"
+    - "2222:22"
   volumes:
     - ./:/work
 centlb01:
   container_name: cent7-lb01
   privileged: true
-  cap_add: 
+  cap_add:
     - SYS_ADMIN
   build: ./env/centos
   hostname: centlb01
+  links:
+    - centapp01
+    - centapp02
   ports:
-    - "2201:22"
-  volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - "2223:22"
+    - "8002:80"
+  #volumes:
+  #  - /sys/fs/cgroup:/sys/fs/cgroup:ro
 centapp01:
   container_name: cent7-app01
   privileged: true
-  cap_add: 
+  cap_add:
     - SYS_ADMIN
   build: ./env/centos
   hostname: centapp01
+  links:
+    - centdb01
   ports:
-    - "2202:22"
-  volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - "2224:22"
+    - "8083:80"
+  #volumes:
+  #  - /sys/fs/cgroup:/sys/fs/cgroup:ro
 centapp02:
   container_name: cent7-app02
   privileged: true
-  cap_add: 
+  cap_add:
     - SYS_ADMIN
   build: ./env/centos
   hostname: centapp02
+  links:
+    - centdb01
   ports:
-    - "2203:22"
-  volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - "2225:22"
+    - "8084:80"
+  #volumes:
+  #  - /sys/fs/cgroup:/sys/fs/cgroup:ro
 centdb01:
   container_name: cent7-db01
   privileged: true
-  cap_add: 
+  cap_add:
     - SYS_ADMIN
   build: ./env/centos
   hostname: centdb01
   ports:
-    - "2204:22"
-  volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - "2226:22"
+    - "3307:3306"
+  #volumes:
+  #  - /sys/fs/cgroup:/sys/fs/cgroup:ro
