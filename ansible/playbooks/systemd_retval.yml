@@ -1,0 +1,22 @@
+---
+- hosts: np_magent
+  gather_facts: false
+  become: true
+  tasks:
+    - name: try to start appdynamics-machine-agent
+      systemd: state=started name=appdynamics-machine-agent
+      register: st
+
+    - debug: var=st
+
+    - name: pause for 5 seconds
+      pause:
+        seconds: 5
+        prompt: Waiting for 5 seconds
+
+    - name: run systemctl manually
+      command: systemctl status appdynamics-machine-agent
+      ignore_errors: true
+      register: ctl
+
+    - debug: var=ctl

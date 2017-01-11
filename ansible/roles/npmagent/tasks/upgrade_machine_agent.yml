@@ -1,0 +1,123 @@
+---
+- name: Upgrade inventory host
+  debug:
+    msg: "Upgrade {{ inventory_hostname }}: found {{ query_result.stdout }}, desired version: {{ np_controller_version }}"
+#
+# Get the version of the installed machine agent - we know it's here
+# we need this to determine of we can just upgrade, or must remove the
+# existing package first.
+#
+- name: check machine agent install
+  command: rpm -q --queryformat '%{Version}' {{ machine_agent_package_name}}
+  register: installed_version
+  ignore_errors: true
+#
+- name: Create backup directory
+  file:
+    path: "{{ appd_local_dir }}"
+    state: directory
+    mode: "u=rxw,g=rx,o=rx"
+#
+# Later...
+#
+#- name: get appdynamics-machine-agent status
+#  command: systemctl status {{ machine_agent_package_name }}
+#  ignore_errors: true
+#  register: ctl
+#
+# Examine var and call stop handler if necessary
+#
+- name: unconditionally stop appdynamics-machine-agent process
+  systemd: name={{ machine_agent_package_name }} state=stopped
+#
+# Later - get process ID of machine-agent and wait_for /proc/<pid>/status
+#     state=absent
+#
+- name: Archive conf dir
+  command: tar -zcvf {{ appd_local_dir}}/conf.tar.gz {{ machine_agent_home}}/conf
+#
+# archive module is only available in ansible v2.3
+#- name: Archive for real
+  #archive:
+    #path: "{{ machine_agent_home}}/conf"
+    #dest: "{{ appd_local_dir}}/conf.tgz"
+#
+# Check the version of the machine agent and set_fact if we must remove first
+# reason: only versions 4.2 and higher can be upgraded in place
+- name: determine remove or upgrade
+  set_fact:
+    remove_machine_agent: true
+  when: "np_controller_major_version not in installed_version.stdout"
+  #when: "'not installed' not in installed_version.stdout and np_controller_major_version not in installed_version.stdout"
+#
+# Revove machine agent if applicable
+- name: remove machine agent
+  yum:
+    name: "{{ machine_agent_package_name }}"
+    state: absent
+  when: "{{ remove_machine_agent }}"
+#
+# Copy rpm to host
+- name: copy rpm
+  copy:
+    src: "{{ item }}"
+    dest: /var/tmp/
+  with_fileglob:
+    - "{{rpm_path_prefix}}{{np_controller_version}}/*{{ np_controller_version }}*.rpm"
+#
+# wait for the file to copy
+#
+- name: wait for the rpm to copy
+  wait_for:
+    path: "{{ item }}"
+  with_fileglob:
+    - "/var/tmp/{{ machine_agent_package_name }}-{{ np_controller_version}}*.rpm"
+#
+# Get the local file name of the rpm package
+#
+- name: get local rpm path - returns list of items
+  find:
+    paths: "/var/tmp"
+    patterns: "{{ machine_agent_package_name }}-{{ np_controller_version}}*.rpm"
+  #command: "ls -1 /var/tmp/*.rpm"
+  register: local_rpm_path
+#
+# set new var to hold path to rpm
+- name: upgrade set fact for path to rpm file
+  set_fact:
+    rpm_path: "{{ item.path }}"
+  with_items: "{{ local_rpm_path.files }}"
+  ignore_errors: true
+  #when: "{{ local_rpm_path.files }} is defined"
+#
+#- name: dump path to rpm
+#  debug: var=rpm_path
+#
+# Upgrade machine agent from local rpm
+#
+- name: upgrade machine agent
+  yum:
+    name: "{{ rpm_path }}"
+    disable_gpg_check: yes
+    state: latest
+  when: rpm_path is defined
+#
+  #notify: start appdynamics-machine-agent
+#
+# Replace the configuration file controller-info.xml if the package was remove_upgrade_machine_agent
+# note the stupid tar gymnastics needed to put the controller-info.xml back where it came from
+# also note, or be aware that tar stores relative pathnames only...
+#
+- name: restore controller-info.xml
+  command: "tar -zxvf {{ appd_local_dir}}/conf.tar.gz -C {{ machine_agent_home}}/conf --wildcards '*controller-info.xml' --strip-components=4"
+  when: "{{ remove_machine_agent }}"
+#
+# Start the machine agent
+#
+- name: start appdynamics-machine-agent process
+  systemd:
+    name: "{{ machine_agent_package_name }}"
+    state: started
+    daemon_reload: yes
+#
+#

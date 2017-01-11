@@ -1,0 +1,24 @@
+---
+- hosts: np_magent
+  gather_facts: false
+  become: true
+  tasks:
+    - name: check machine agent install
+      command: rpm -q --queryformat '%{Version}' {{ machine_agent_package_name}}
+      register: rpm_result
+      ignore_errors: true
+    - name: dump register
+      debug:
+        msg: "Version Check: {{ rpm_result.stdout }}"
+    - name: Fresh install on inventory host
+      debug:
+        msg: "{{ machine_agent_package_name }} not installed on {{ inventory_hostname}}"
+      when: "'not installed' in rpm_result.stdout"
+    - name: Upgrade inventory host
+      debug:
+        msg: "Upgrade {{ inventory_hostname }}: found {{ rpm_result.stdout }}, desired version: {{ np_controller_version }}"
+      when: "'{{ np_controller_version }}' != rpm_result.stdout and 'not installed' not in rpm_result.stdout"
+    - name: No action for inventory host
+      debug:
+        msg: "{{ machine_agent_package_name }} up to date on {{ inventory_hostname }}"
+      when: "'{{ np_controller_version }}' == rpm_result.stdout"

@@ -1,0 +1,10 @@
+---
+- name: try local_action
+  hosts: ubu01
+  gather_facts: false
+  tasks:
+    - name: use find to get rpm path
+      command: "find /work/rpm -name '*{{ np_controller_version }}*.rpm' -type f -print"
+      register: rpm_path
+
+    - debug: var=rpm_path.stdout_lines

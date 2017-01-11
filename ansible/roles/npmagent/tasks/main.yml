@@ -1,0 +1,71 @@
+---
+# tasks file for npmagent
+#
+# Check the inventory target for current state of machine agent
+#
+- name: check machine agent install
+  command: rpm -q --queryformat '%{Version}' {{ machine_agent_package_name}}
+  register: query_result
+  ignore_errors: true
+  changed_when: false
+#
+# dump registered variable
+#
+- name: dump query result
+  debug:
+    var: query_result.stdout
+#
+# Set facts based on conditions
+- name: define no_action variable
+  set_fact:
+    no_action: true
+  when: "'{{ np_controller_version }}' == query_result.stdout"
+#
+# set facts for upgrade variable
+- name: define include_upgrade_tasks
+  set_fact:
+    include_upgrade_tasks: true
+  when: "'{{ np_controller_version }}' not in query_result.stdout and 'not installed' not in query_result.stdout"
+#
+# set facts for install
+- name: define include_install_tasks
+  set_fact:
+    include_install_tasks: true
+  when: "'not installed' in query_result.stdout"
+#
+# If the machine agent is up to date, say so, and continue
+#
+- name: No action for inventory host
+  debug:
+    msg: "{{ machine_agent_package_name }} up to date on {{ inventory_hostname }}"
+  when: "{{ no_action }} is defined"
+#
+#
+# version 2.3 only
+#- name: use jinja2 to check type
+#  debug: "{{ query_result | type }}"
+#
+# For versions prior to 4.2, must remove the old package before installing
+#
+# If the machine agent is present, but not the desired version, Upgrade
+#
+# pause
+#- pause:
+#    prompt="Stopping prior to upgrade include. Enter to continue, Ctl/C to abort"
+#
+- name: upgrade machine agent
+  include: upgrade_machine_agent.yml
+  static: no
+  when: include_upgrade_tasks is defined
+# pause
+#- pause:
+#    prompt="Stopping prior to install include. Enter to continue, Ctl/C to abort"
+#
+#
+# If the machine agent is not present, do a full installed
+#
+- name: install machine agent
+  include: install_machine_agent.yml
+  static: no
+  when: include_install_tasks is defined
+  #when: "'not installed' in query_result.stdout"

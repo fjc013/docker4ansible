@@ -1,0 +1,7 @@
+---
+- hosts: np_magent
+  gather_facts: false
+  become: true
+  roles:
+    - npmagent
+    

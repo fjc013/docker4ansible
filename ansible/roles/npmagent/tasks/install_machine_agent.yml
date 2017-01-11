@@ -1,0 +1,77 @@
+---
+- name: Fresh install on inventory host
+  debug:
+    msg: "{{ machine_agent_package_name }} not installed on {{ inventory_hostname}}"
+#
+# Copy rpm to host
+- name: install copy rpm
+  copy:
+    src: "{{ item }}"
+    dest: /var/tmp/
+  with_fileglob:
+    - "{{rpm_path_prefix}}{{np_controller_version}}/*{{ np_controller_version }}*.rpm"
+#
+# wait for the file to copy
+#
+- name: install wait for the rpm to copy
+  wait_for:
+    path: "{{ item }}"
+  with_fileglob:
+    - "/var/tmp/{{ machine_agent_package_name }}-{{ np_controller_version}}*.rpm"
+#
+# Get the local file name of the rpm package
+#
+- name: install get local rpm path - returns list of items
+  find:
+    paths: "/var/tmp"
+    patterns: "{{ machine_agent_package_name }}-{{ np_controller_version}}*.rpm"
+  #command: "ls -1 /var/tmp/*.rpm"
+  register: local_rpm_path
+#
+#- name: dump registered var
+#  debug: var=local_rpm_path
+#  tags:
+#    - rpm_path
+#- name: print path to file
+#  debug: msg="{{ item.path }}"
+#  with_items: "{{ local_rpm_path.files }}"
+#  tags:
+#    - rpm_path
+#
+# set new var to hold path to rpm
+- name: fresh install set fact for path to rpm file
+  set_fact:
+    rpm_path: "{{ item.path }}"
+  with_items: "{{ local_rpm_path.files }}"
+  ignore_errors: true
+#
+#- name: dump path to rpm
+#  debug: var=rpm_path
+#
+# Upgrade machine agent from local rpm
+#
+- name: install machine agent
+  yum:
+    name: "{{ rpm_path }}"
+    disable_gpg_check: yes
+    state: latest
+  #notify: start appdynamics-machine-agent
+#
+# Configure controller-info.xml
+#
+- name: Configure controller-info.xml
+  replace:
+    dest="{{ machine_agent_home }}/conf/controller-info.xml"
+    regexp={{ item.varname }}
+    replace={{ item.value }}
+  with_items:
+    - '{{ vars_controllerInfo }}'
+#
+# Restart the machine agent process
+#
+- name: install start appdynamics-machine-agent process
+  systemd:
+    name: "{{ machine_agent_package_name }}"
+    state: restarted
+    daemon_reload: yes
+#

@@ -1,0 +1,7 @@
+---
+# handlers file for npmagent
+- name: stop appdynamics-machine-agent
+  systemd: name={{ machine_agent_package_name }} state=stopped
+#
+- name: start appdynamics-machine-agent
+  systemd: name={{ machine_agent_package_name }} state=started

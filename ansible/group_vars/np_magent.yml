@@ -1,4 +1,44 @@
 ---
-np_controller_name: "somename"
-np_controller_version: '4.2.10'
-np_controller_accesskey: 'sdafasdfsadfsadf'
+np_controller_major_version: "4.2"
+#
+np_controller_version: "4.2.10.0"
+#
+machine_agent_package_name: 'appdynamics-machine-agent'
+#
+rpm_path_prefix: "/work/rpm/"
+#
+# Install desire
+machine_agent_home: "/opt/appdynamics/machine-agent"
+#
+# Work space for local maintenance - including /conf dir backups
+appd_local_dir: "/opt/local/appdynamics"
+#
+# Non-Prod Controller built by ESM
+controller_hostName: npappd.erieinsurance.com
+controller_port: 8090
+applicationName: ACMEOnline
+agent_tierName: Inventory
+agent_nodeName: '{{ inventory_hostname }}'
+# Keys are generated at the Controller during build
+# agent_accountAccessKey: e8c469e5-94a3-49d8-8efc-732ff91204fe
+#
+# Non-Prod Controller key
+agent_accountAccessKey: 3be9858c-0790-4677-af18-9c7abc756aa2
+##
+# Define Controller-info.xml attributes
+# use named backreferences when the content following the
+#  backreference is numeric - or just always use them.
+# ## New - Use replace module rather than lineinfile - no need to add xml end tags
+#
+vars_controllerInfo:
+  - { varname: '(^[\s]*<controller-host>)', value: '\1{{ controller_hostName }}' }
+  - { varname: '(?P<port>^[\s]*<controller-port>)', value: '\g<port>{{ controller_port }}' }
+#  - { varname: '(^[\s]*<controller-ssl-enabled>)', value: '\1false' }
+#  - { varname: '(^[\s]*<enable-orchestration>)', value: '\1false' }
+#  - { varname: '(^[\s]*<account-name>)', value: '\1</account-name>' }
+  - { varname: '(?P<key>^[\s]*<account-access-key>)', value: '\g<key>{{ agent_accountAccessKey }}' }
+  - { varname: '(^[\s]*<application-name>)', value: '\1{{ applicationName }}' }
+  - { varname: '(^[\s]*<tier-name>)', value: '\1{{ agent_tierName }}' }
+  - { varname: '(^[\s]*<unique-host-id>)', value: '\1{{ agent_nodeName }}' }
+  - { varname: '(^[\s]*<force-agent-registration>)', value: '\1true' }
+#
