@@ -1,0 +1,5 @@
+# file patterns to ignore
+#
+# do not send rpm files to github!
+*.rpm
+

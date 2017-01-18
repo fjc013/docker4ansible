@@ -1,0 +1,5 @@
+# Try to override git's default line ending behavior - save all text files with LF
+*.yml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+* text eol=lf
